@@ -94,9 +94,9 @@ to explicitely define a generic field's object id and allowed content types
 
 [1]: https://docs.djangoproject.com/en/1.6/ref/contrib/admin/#django.contrib.admin.ModelAdmin.preserve_filters
 
-# Obsolete with newer Django versions
 
 ## LocationMixin
+#### Note: Obsolete with newer Django versions
 
 ### Intro
 Before Django 1.6 introduced [ModelAdmin.preserve_filters][1] the bahavior
