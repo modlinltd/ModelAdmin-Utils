@@ -1,24 +1,58 @@
-ModelAdmin-Mixins
+ModelAdmin-Utils
 =================
 
-A collection of useful django admin.ModelAdmin mixins
+A collection of useful django admin.ModelAdmin mixins and template tags
 
-## LocationMixin
+## LimitInlinesAdminMixin
 
 ### Intro
-Before Django 1.6 introduced [ModelAdmin.preserve_filters][1] the bahavior
-of Django admin was as follows:
-
-1. filter a changelist by using search/filters
-2. click one of the result entries
-3. edit the result and save it
-4. Django redirects you to the changelist without storing your filters
-
-This mixin introduces the ability to redirect the client back to the changelist
-with the filters restored, after saving the changeform.
+Occasionally, a relation to a specified object may include quite a few object. In this case, a large list of inlines will be rendered, which may not be desired.
 
 ### Usage
-Simply import LocationMixin and place it as a parent class on any ModelAdmin sub-class, see TestLocationAdmin in admin.py for an example.
+Simply add LimitInlinesAdminMixin to the parent ModelAdmin, and specify the inlines to be limited in the attribute `limit_inlines`. The number of entries shown is determined by settings.INLINES_MAX_LIMIT (defaults to 15).
+
+    limit_inlines = (MyRelatedModelInline, AnotherRelationInline)
+
+### Template: Link to "show all" entries
+
+Additionally to limiting, you may also display in the header of the inline container a link to related object changelist, filtered by related entries only. This is achievable by overriding the admin templates for the relevant inline/s.
+
+    {% link_to_changelist inline_admin_formset original as changelist_url %}
+    {% if changelist_url %}
+        &nbsp;({{inline_admin_formset.formset.limited_count}} / {{inline_admin_formset.formset.total_count}} displayed - <a href="{{ changelist_url }}">{% trans "Detailed View" %}</a>)
+    {% endif %}
+        
+E.g.: to add the link to a stacked template, copy over your original templates/admin/edit_inline/stacked.py, and place the code above in the div.tabular-header like so (note that I'm using a [django-grappelli](sehmaschine/django-grappelli) template here):
+
+    {% load modeladmin_links %}
+
+    {# ... #}
+    {% link_to_changelist inline_admin_formset original as changelist_url %}
+    <div class="tabular-header">
+    <h2 class="grp-collapse-handler">
+        {% if inline_admin_formset.opts.title %}{{ inline_admin_formset.opts.title }}{% else %}{{ inline_admin_formset.opts.verbose_name_plural|capfirst }}{% endif %}
+        {% if changelist_url %}
+            &nbsp;({{inline_admin_formset.formset.limited_count}} / {{inline_admin_formset.formset.total_count}} displayed - <a href="{{ changelist_url }}">{% trans "Detailed View" %}</a>)
+        {% endif %}
+    </h2>
+    {# ... #}
+
+And for stacked, use template templates/admin/edit_inline/stacked.py:
+
+    {% load modeladmin_links %}
+
+    {# ... #}
+    <h2 class="grp-collapse-handler">
+        {% if inline_admin_formset.opts.title %}
+            {{ inline_admin_formset.opts.title }}
+        {% else %}
+            {{ inline_admin_formset.opts.verbose_name_plural|capfirst }}
+        {% endif %}
+        {% if changelist_url %}
+            &nbsp;({{inline_admin_formset.formset.limited_count}} / {{inline_admin_formset.formset.total_count}} displayed - <a href="{{ changelist_url }}">{% trans "Detailed View" %}</a>)
+        {% endif %}
+    </h2>
+    {# ... #}
 
 ## GenericSearchMixin
 
@@ -59,3 +93,22 @@ to explicitely define a generic field's object id and allowed content types
 * Currently assumes id of related objects are unique across all models
 
 [1]: https://docs.djangoproject.com/en/1.6/ref/contrib/admin/#django.contrib.admin.ModelAdmin.preserve_filters
+
+# Obsolete with newer Django versions
+
+## LocationMixin
+
+### Intro
+Before Django 1.6 introduced [ModelAdmin.preserve_filters][1] the bahavior
+of Django admin was as follows:
+
+1. filter a changelist by using search/filters
+2. click one of the result entries
+3. edit the result and save it
+4. Django redirects you to the changelist without storing your filters
+
+This mixin introduces the ability to redirect the client back to the changelist
+with the filters restored, after saving the changeform.
+
+### Usage
+Simply import LocationMixin and place it as a parent class on any ModelAdmin sub-class, see TestLocationAdmin in admin.py for an example.
