@@ -7,6 +7,22 @@ from django.contrib.contenttypes.generic import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
+logger = logging.getLogger('search.GenericSearchMixin')
+
+
+def get_generic_field(model, field_name):
+    """
+    Find the given generic_field name in the given model and verify
+    it is a GenericForeignKey, otherwise raise an Exeption.
+    """
+    for f in model._meta.virtual_fields:
+        if f.name == field_name:
+            if not isinstance(f, GenericForeignKey):
+                raise Exception(
+                    'Given field %s is not an instance of '
+                    'GenericForeignKey' % field_name)
+            return f
+
 
 class GenericSearchMixin(object):
     """
@@ -20,17 +36,13 @@ class GenericSearchMixin(object):
     search_fields = ('related_to__fname', 'related_to__email', ...)
 
     Optionally, you may define 'related_search_mapping' in the ModelAdmin
-    to explicitely define a generic field's object id and content types
+    to explicitly define a generic field's object id and content types
     (this is useful to limit the content types).
 
     Notes:
     * Required Django > 1.6
     * Currently assumes id of related objects are unique across all models
     """
-    def __init__(self, *args, **kwargs):
-        self.logger = logging.getLogger('search.GenericSearchMixin')
-        return super(GenericSearchMixin, self).__init__(*args, **kwargs)
-
     def get_search_results(self, request, queryset, search_term):
         def generate_q_object(orm_lookups):
             """
@@ -79,25 +91,12 @@ class GenericSearchMixin(object):
                         normal_fields.append(field)
             return normal_fields, generic_search_fields
 
-        def get_generic_field(model, field_name):
-            """
-            Find the given generic_field name in the given model and verify
-            it is a GenericForeignKey, otherwise raise an Exeption.
-            """
-            for f in model._meta.virtual_fields:
-                if f.name == field_name:
-                    if not isinstance(f, GenericForeignKey):
-                        raise Exception(
-                            'Given field %s is not an instance of '
-                            'GenericForeignKey' % field_name)
-                    return f
-
         def get_object_id(model, generic_field):
             """
             Return the foreign key field for a given GenericForeignKey
             in a given model
             """
-            self.logger.debug('related_search_mapping did not define object_id, '
+            logger.debug('related_search_mapping did not define object_id, '
                          'attempting to find using GenericForeignKey %s in '
                          'model %s', generic_field, model)
             field = get_generic_field(model, generic_field)
@@ -112,7 +111,7 @@ class GenericSearchMixin(object):
             Return the content types allowed for a given GenericForeignKey
             in a given model
             """
-            self.logger.debug('related_search_mapping did not define ctypes, '
+            logger.debug('related_search_mapping did not define ctypes, '
                          'attempting to find using GenericForeignKey %s in '
                          'model %s', generic_field, model)
             field = get_generic_field(model, generic_field)
@@ -138,7 +137,7 @@ class GenericSearchMixin(object):
                 """
                 if isinstance(ctypes, dict):
                     if not ctypes:
-                        self.logger.warn("""
+                        logger.warn("""
 This is a very inefficient query! Each search argument is going to query
 all model classes. Please limit ContentType choices the FK if possible,
 or define a 'related_search_mapping' argument which limits the ctypes.""")
@@ -158,13 +157,13 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
             for rel_field, fields in fields_mapping.items():
                 query = generate_q_object(fields)
                 if not query:
-                    self.logger.warn('No Q instance returned')
+                    logger.warn('No Q instance returned')
                     continue
 
-                obj_id = (self.related_search_mapping[rel_field].get('object_id') or
-                          get_object_id(self.model, rel_field))
-                ctypes = (self.related_search_mapping[rel_field].get('ctypes') or
-                          get_content_types(self.model, rel_field))
+                obj_id = (self.related_search_mapping[rel_field].get(
+                          'object_id') or get_object_id(self.model, rel_field))
+                ctypes = (self.related_search_mapping[rel_field].get(
+                          'ctypes') or get_content_types(self.model, rel_field))
                 models = get_ctype_models(ctypes)
                 for model in models:
                     ids[obj_id].extend(
