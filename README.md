@@ -11,7 +11,13 @@ Occasionally, a relation to a specified object may include quite a few object. I
 ### Usage
 Simply add LimitInlinesAdminMixin to the parent ModelAdmin, and specify the inlines to be limited in the attribute `limit_inlines`. The number of entries shown is determined by settings.INLINES_MAX_LIMIT (defaults to 15).
 
-    limit_inlines = (MyRelatedModelInline, AnotherRelationInline)
+    from modeladmin_utils.mixins import LimitInlinesAdminMixin
+
+    # ...
+
+    class SomeParentModelAdmin(LimitInlinesAdminMixin, admin.ModelAdmin):
+        inlines = (MyRelatedModelInline, AnotherRelationInline)
+        limit_inlines = (MyRelatedModelInline, )
 
 ### Template: Link to "show all" entries
 

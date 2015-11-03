@@ -2,3 +2,6 @@
 *.pot
 *.pyc
 local_settings.py
+
+/dist/
+/django_modeladmin_utils.egg-info/
