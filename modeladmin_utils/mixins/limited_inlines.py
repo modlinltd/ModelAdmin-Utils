@@ -21,10 +21,10 @@ class LimitedInlineFormset(BaseInlineFormSet):
 
 class LimitInlinesAdminMixin(object):
     """
-    Overrides the inline formset with `LimitedInlineFormset`.
-
     Set ModelAdmin.limit_inlines to a tuple of InlineModelAdmin
     classes you wish to be limited.
+
+    Overrides the inline formset with `LimitedInlineFormset`.
     """
     def get_formsets(self, request, obj=None):
         limit_inlines = getattr(self, "limit_inlines", [])

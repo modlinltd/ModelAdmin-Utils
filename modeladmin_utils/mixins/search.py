@@ -7,7 +7,7 @@ from django.contrib.contenttypes.generic import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
-logger = logging.getLogger('search.GenericSearchMixin')
+logger = logging.getLogger('modeladmin_utils.mixins.search')
 
 
 def get_generic_field(model, field_name):
