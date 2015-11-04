@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import modeladmin_utils
 
 
@@ -8,7 +8,7 @@ setup(
     author_email='pavel@modlinltd.com',
     url='http://modlinltd.com/',
     version=modeladmin_utils.__version__,
-    packages=['modeladmin_utils'],
+    packages=find_packages(),
     description='ModelAdmin utils',
     install_requires=['django>=1.4'],
     license='MIT',
