@@ -3,6 +3,11 @@ ModelAdmin-Utils
 
 A collection of useful django `admin.ModelAdmin` mixins and template tags
 
+Installation
+============
+
+    pip install django-modeladmin-utils
+
 LimitInlinesAdminMixin
 ======================
 
